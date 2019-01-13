@@ -1,0 +1,9 @@
+tensorflow-gpu
+imagehash
+lap
+tqdm
+Pillow
+pytest
+scipy
+matplotlib
+skimage
