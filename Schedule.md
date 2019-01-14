@@ -4,17 +4,22 @@
 
 ### *Prepare and Research*
 
-- [x] 数据集下载
-- [ ] kernel任务, 一人五篇
-- [ ] 学术相关research
-- [ ] 代码框架, 试运行
-  - [x] Baseline网络结构搭建
-  - [ ] 数据
-    - [ ] 读写数据
+- [x] dataset download
+- [ ] research
+  - [ ] papers related(recent 3 years)
+  - [ ] kernel related(better than 7.0)
+- [ ] frame
+  - [x] Baseline network build
+  - [ ] data
+    - [ ] read/write data
     - [ ] bounding box
-    - [ ] 预处理
-  - [ ] 训练
-    - [ ] 参数整理
-    - [ ] 试运行
-  - [ ] 测试 (待定)
+    - [ ] prepocess
+  - [ ] train
+    - [ ] parameter 
+    - [ ] run
+  - [ ] test 
+  
 
+
+## 1.15 - 1.16
+### **
