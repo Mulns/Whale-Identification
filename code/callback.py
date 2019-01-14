@@ -1,6 +1,7 @@
 import os
 from tensorflow import keras
 
+
 class ModelCheckpointAfter(keras.callbacks.ModelCheckpoint):
     """ModelCheckPoint after specified epoch instead of Every epoch.
     
@@ -16,10 +17,18 @@ class ModelCheckpointAfter(keras.callbacks.ModelCheckpoint):
             mode: "max" or "min" or "auto".
             period: Int
     """
-    def __init__(self, id_epoch, filepath, monitor='val_loss', verbose=1,
-                 save_best_only=False, save_weights_only=False,
-                 mode='auto', period=1):
-        super().__init__(filepath, monitor, verbose, save_best_only, save_weights_only, mode, period)
+
+    def __init__(self,
+                 id_epoch,
+                 filepath,
+                 monitor='val_loss',
+                 verbose=1,
+                 save_best_only=False,
+                 save_weights_only=False,
+                 mode='auto',
+                 period=1):
+        super().__init__(filepath, monitor, verbose, save_best_only,
+                         save_weights_only, mode, period)
         self.after_epoch = id_epoch
 
     def on_epoch_end(self, epoch, logs=None):
@@ -28,9 +37,14 @@ class ModelCheckpointAfter(keras.callbacks.ModelCheckpoint):
 
 
 def model_checkpoint_after(epoch, path, monitor, save_best_only, mode):
-    pattern = os.path.join(path, 'epoch-{epoch:03d}-psnr-{' + monitor + ':.4f}.h5')
-    return ModelCheckpointAfter(epoch, filepath=pattern, monitor=monitor,
-                                save_best_only=save_best_only, mode=mode)
+    pattern = os.path.join(path,
+                           'epoch-{epoch:03d}-psnr-{' + monitor + ':.4f}.h5')
+    return ModelCheckpointAfter(
+        epoch,
+        filepath=pattern,
+        monitor=monitor,
+        save_best_only=save_best_only,
+        mode=mode)
 
 
 def learning_rate(step_size, decay, verbose=1):
@@ -45,4 +59,7 @@ def learning_rate(step_size, decay, verbose=1):
 
 def tensor_board(path, histogram_freq, **kwargs):
     """write_graph, write_grads, write_images"""
-    return keras.callbacks.TensorBoard(log_dir=os.path.join(path, 'log'), histogram_freq=histogram_freq, **kwargs)
+    return keras.callbacks.TensorBoard(
+        log_dir=os.path.join(path, 'log'),
+        histogram_freq=histogram_freq,
+        **kwargs)

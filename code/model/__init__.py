@@ -2,10 +2,6 @@ import os
 import tempfile
 
 
-def load_model(path):
-    import train
-    return train._load_model(path)
-
 
 def copy_weights(from_model, to_model, by_name=True):
     with tempfile.TemporaryDirectory(dir='.') as d:
