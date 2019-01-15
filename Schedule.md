@@ -2,12 +2,12 @@
 
 ## 1.13 - 1.14
 
-### *Prepare and Research*
+### *Prepare & Research*
 
 - [x] dataset download
-- [ ] research
-  - [ ] papers related(recent 3 years)
-  - [ ] kernel related(better than 7.0)
+- [x] research
+  - [x] papers related(recent 3 years)
+  - [x] kernel related(better than 7.0)
 - [x] frame
   - [x] Baseline network build
   - [x] data
@@ -21,4 +21,14 @@
 
 
 ## 1.15 - 1.16
-### **
+
+### *Strategy & Idea*
+
+- [ ] body famailiar 
+  - [ ] input & output
+  - [ ] network related
+- [ ] idea modify
+  - [ ] loss function
+  - [ ] preprocess
+  - [ ] postprocess
+    
