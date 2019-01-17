@@ -24,11 +24,24 @@
 
 ### *Strategy & Idea*
 
-- [ ] body famailiar 
-  - [ ] input & output
-  - [ ] network related
-- [ ] idea modify
+- [x] body famailiar 
+  - [x] input & output
+  - [x] network related
+- [x] idea modify
+  - [x] loss function
+  - [x] preprocess
+  - [x] postprocess
+  
+
+## 1.17 - 1.20
+
+### *Architecture & Fusion*
+
+- [ ] DeepID theory
+  - [ ] network frame
+  - [ ] identification & verification
   - [ ] loss function
-  - [ ] preprocess
-  - [ ] postprocess
-    
+- [ ] DeepID replay
+  - [ ] data
+  - [ ] train
+  - [ ] test
