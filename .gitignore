@@ -4,6 +4,7 @@ __pycache__/
 
 # dataset
 Dataset/train
+Dataset/Train
 Dataset/test
 Dataset/test.zip
-.ipynb
+code2.0/trainSpace
