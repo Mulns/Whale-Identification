@@ -38,7 +38,8 @@ class TrainingData(keras.utils.Sequence):
         """
         super(TrainingData, self).__init__()
         self.img_shape = shape
-        self.score = -score  # Maximizing the score is the same as minimuzing -score.
+        # Maximizing the score is the same as minimuzing -score.
+        self.score = -score
         self.steps = steps
         self.batch_size = batch_size
         self.w2ts = metadata['w2ts']
@@ -89,7 +90,8 @@ class TrainingData(keras.utils.Sequence):
         return [a, b], c
 
     def on_epoch_end(self):
-        if self.steps <= 0: return  # Skip this on the last epoch.
+        if self.steps <= 0:
+            return  # Skip this on the last epoch.
         self.steps -= 1
         self.match = []
         self.unmatch = []
@@ -103,7 +105,8 @@ class TrainingData(keras.utils.Sequence):
             d = ts.copy()
             while True:
                 random.shuffle(d)
-                if not np.any(ts == d): break
+                if not np.any(ts == d):
+                    break
             for ab in zip(ts, d):
                 self.match.append(ab)
 
@@ -155,7 +158,8 @@ class FeatureGen(keras.utils.Sequence):
                 **self.metadata)
         if self.verbose > 0:
             self.progress.update()
-            if self.progress.n >= len(self): self.progress.close()
+            if self.progress.n >= len(self):
+                self.progress.close()
         return a
 
     def __len__(self):
@@ -187,7 +191,8 @@ class ScoreGen(keras.utils.Sequence):
         b = self.x[self.ix[start:end], :]
         if self.verbose > 0:
             self.progress.update()
-            if self.progress.n >= len(self): self.progress.close()
+            if self.progress.n >= len(self):
+                self.progress.close()
         return [a, b]
 
     def __len__(self):

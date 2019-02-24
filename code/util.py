@@ -1,8 +1,10 @@
 import tensorflow as tf
 from tensorflow import keras
-
+import numpy as np
 from contextlib import contextmanager
 from PIL import Image
+from data import FeatureGen, ScoreGen
+
 
 
 @contextmanager
@@ -19,49 +21,41 @@ def concurrent_generator(sequence,
         enqueuer.stop()
 
 
-def init_session(gpu_memory_fraction):
-    keras.backend.set_session(
-        _tensorflow_session(gpu_memory_fraction=gpu_memory_fraction))
-
-
-def reset_session(gpu_memory_fraction):
-    keras.backend.clear_session()
-    init_session(gpu_memory_fraction)
-
-
-def _tensorflow_session(gpu_memory_fraction):
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    config.gpu_options.per_process_gpu_memory_fraction = gpu_memory_fraction
-    return tf.Session(config=config)
-
-
-def mae(hr, sr):
-    hr, sr = _crop_hr_in_training(hr, sr)
-    return keras.losses.mean_absolute_error(hr, sr)
-
-
-def psnr(hr, sr):
-    hr, sr = _crop_hr_in_training(hr, sr)
-    return tf.image.psnr(hr, sr, max_val=255)
-
-
-def _crop_hr_in_training(hr, sr):
+def score_reshape(score, x, y=None):
     """
-    Remove margin of size scale*2 from hr in training phase.
-
-    The margin is computed from size difference of hr and sr
-    so that no explicit scale parameter is needed. This is only
-    needed for WDSR models.
+    Tranformed the packed matrix 'score' into a square matrix.
+    @param score the packed matrix
+    @param x the first image feature tensor
+    @param y the second image feature tensor if different from x
+    @result the square matrix
     """
+    if y is None:
+        # When y is None, score is a packed upper triangular matrix.
+        # Unpack, and transpose to form the symmetrical lower triangular matrix.
+        m = np.zeros((x.shape[0], x.shape[0]), dtype=keras.backend.floatx())
+        m[np.triu_indices(x.shape[0], 1)] = score.squeeze()
+        m += m.transpose()
+    else:
+        m = np.zeros((y.shape[0], x.shape[0]), dtype=keras.backend.floatx())
+        iy, ix = np.indices((y.shape[0], x.shape[0]))
+        ix = ix.reshape((ix.size, ))
+        iy = iy.reshape((iy.size, ))
+        m[iy, ix] = score.squeeze()
+    return m
 
-    margin = (tf.shape(hr)[1] - tf.shape(sr)[1]) // 2
-
-    # crop only if margin > 0
-    hr_crop = tf.cond(
-        tf.equal(margin, 0), lambda: hr,
-        lambda: hr[:, margin:-margin, margin:-margin, :])
-
-    hr = keras.backend.in_train_phase(hr_crop, hr)
-    hr.uses_learning_phase = True
-    return hr, sr
+def compute_score(data, shape, branch_model, head_model, verbose=1, **metadata):
+    """
+    Compute the score matrix by scoring every pictures from the training set against every other picture O(n^2).
+    """
+    features = branch_model.predict_generator(
+        FeatureGen(data, shape, verbose=verbose, **metadata),
+        max_queue_size=12,
+        workers=6,
+        verbose=0)
+    score = head_model.predict_generator(
+        ScoreGen(features, verbose=verbose),
+        max_queue_size=12,
+        workers=6,
+        verbose=0)
+    score = score_reshape(score, features)
+    return features, score
