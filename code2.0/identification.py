@@ -83,7 +83,8 @@ knn.fit(x_train_pca ,y_train)
 y_test_predict=knn.predict(x_test_pca)
 
 #predict the accuracy rate
-print(knn.score(x_test_pca, y_test))   
+print("score of knn: ", knn.score(x_test_pca, y_test))   
 
 
-pred, _ = model.model.predict(test_data[0])
+nbs = model.model.evaluate(test_data[0], test_data[1])
+print("acc of softmax: ", nbs[-1])
