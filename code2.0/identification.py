@@ -41,7 +41,7 @@ def pca():
     x_test_pca = PCA.transform(x_test)
     
     #knn core  
-    knn=KNeighborsClassifier(n_neighbors=6) 
+    knn=KNeighborsClassifier(n_neighbors=5) 
 
     #train the model using train dataset 
     knn.fit(x_train_pca ,y_train)                       
