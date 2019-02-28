@@ -1,5 +1,6 @@
 from tensorflow import keras
 from util import ArcfaceLoss, inference_loss, identity_loss
+import numpy as np
 import os
 import wn
 
@@ -9,6 +10,7 @@ nb_classes = 5004
 lambda_c = 0.2
 lr = 6e-4
 feature_size = 512
+final_active = 'sigmoid'  # for siamese net
 
 # labels: not one-hot
 
@@ -22,7 +24,7 @@ class BaseModel(object):
         self.log_dir = os.path.join(workspace, "logs", model_name)
 
     def create_model(self, ):
-        pass
+        self.model = None
 
     def fit(self, train_gen, valid_gen, batch_size, nb_epochs):
         callback_list = [
@@ -62,11 +64,6 @@ class BaseModel(object):
             workers=6,
             use_multiprocessing=True,
             shuffle=True)
-
-    def embedding(self, data):
-        # (N, H, W, C)
-        _labels = np.zeros((data.shape[0], ))
-        sub_model = keras.Model(self.model.inputs, self.model.get)
 
 
 class ArcFace(BaseModel):
@@ -173,7 +170,7 @@ class CenterLossNet(BaseModel):
         return self
 
     def get_embedding(self, ):
-        return keras.Model(self.model.inputs,
+        return keras.Model(self.model.get_layer("input_1").output,
                            self.model.get_layer("prediction").input)
 
     def get_centers(self, ):
@@ -183,8 +180,77 @@ class CenterLossNet(BaseModel):
             self.model.get_layer("embedding").output)
 
 
+class Siamese(BaseModel):
+    def __init__(self, backbone, workspace, model_name):
+        super(Siamese, self).__init__(workspace, model_name)
+        self.backbone = backbone
+
+    def create_branch(self, ):
+        init = keras.layers.Input((H, W, C))
+        out = self.backbone(init)
+        return keras.Model(init, out)
+
+    def create_model(self,
+                     _compile=True,
+                     use_weightnorm=False,
+                     database_init=False,
+                     data=None,
+                     lambda_c=0.2,
+                     load_weights=False,
+                     weights_path=None):
+        i1 = keras.layers.Input((H, W, C))
+        i2 = keras.layers.Input((H, W, C))
+        branch = self.create_branch()
+        branch.trainable = False
+        xa_inp = branch(i1)
+        xb_inp = branch(i2)
+
+        x1 = keras.layers.Lambda(lambda x: x[0] * x[1])([xa_inp, xb_inp])
+        x2 = keras.layers.Lambda(lambda x: x[0] + x[1])([xa_inp, xb_inp])
+        x3 = keras.layers.Lambda(lambda x: keras.backend.abs(x[0] - x[1]))(
+            [xa_inp, xb_inp])
+        x4 = keras.layers.Lambda(lambda x: keras.backend.square(x))(x3)
+        x = keras.layers.Concatenate()([x1, x2, x3, x4])
+        x = keras.layers.Reshape((4, feature_size, 1), name='reshape1')(x)
+
+        # Per feature NN with shared weight is implemented using CONV2D with appropriate stride.
+        x = keras.layers.Conv2D(
+            32, (4, 1), activation='relu', padding='valid')(x)
+        x = keras.layers.Reshape((feature_size, 32, 1))(x)
+        x = keras.layers.Conv2D(
+            1, (1, 32), activation='linear', padding='valid')(x)
+        x = keras.layers.Flatten(name='flatten')(x)
+
+        # Weighted sum implemented as a Dense layer.
+        score = keras.layers.Dense(
+            1, use_bias=True, activation=final_active,
+            name='weighted-average')(x)
+
+        self.model = keras.Model([i1, i2], score)
+        if _compile:
+            # compilation
+            if use_weightnorm:
+                opt = wn.AdamWithWeightnorm(lr=lr)
+            else:
+                opt = keras.optimizers.Adam(
+                    lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-8)
+            # opt = keras.optimizers.SGD(lr=1e-4, momentum=0.9, decay=0.)
+            self.model.compile(
+                optimizer=opt,
+                loss=["binary_crossentropy"],
+                metrics=dict(prediction="weighted-average"),
+                loss_weights=[1])
+            if use_weightnorm and database_init:
+                wn.data_based_init(self.model, data)
+        if load_weights:
+            weights_path = self.weights_path if weights_path is None else weights_path
+            self.model.load_weights(weights_path, by_name=True)
+
+        return self
+
+
 if __name__ == "__main__":
-    from backbones import Vgg16, resnet50, siamise
+    from backbones import Vgg16, resnet50, siamese
     from data import rgb2ycbcr, ImageDataLabelGenerator
 
     train_data_gen = ImageDataLabelGenerator(
@@ -221,11 +287,11 @@ if __name__ == "__main__":
         shuffle=True,
         interpolation="bicubic")
 
-    model = CenterLossNet(siamise, "./trainSpace/",
-                          "CenterLossNet").create_model(
-                              _compile=True,
-                              use_weightnorm=False,
-                              database_init=False,
-                              load_weights=False,
-                              lambda_c=lambda_c)
-    model.fit(train_gen, valid_gen, batch_size=10, nb_epochs=10000)
+    model = Siamese(siamese, "./trainSpace/", "SiameseNet").create_model(
+        _compile=True,
+        use_weightnorm=False,
+        database_init=False,
+        load_weights=True,
+        weights_path="./trainSpace/weights/CenterLossNet.h5",
+        lambda_c=lambda_c)
+    # model.fit(train_gen, valid_gen, batch_size=10, nb_epochs=10000)

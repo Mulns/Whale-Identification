@@ -12,7 +12,7 @@ from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 
 
-def pca():
+def pca(n_neighbors=6, is_pca=True):
     #get train and test  x:data;y:label
     y_train = np.arange(0, nb_classes)
     x_train = model.get_centers().predict(y_train).squeeze()
@@ -21,36 +21,35 @@ def pca():
     x_test = test_embed
     y_test = test_data[0][1]
 
-    print("x_train: ", x_train.shape)
-    print("y_train: ", y_train.shape)
-    print("x_test: ", x_test.shape)
-    print("y_test: ", y_test.shape)
+    # print("x_train: ", x_train.shape)
+    # print("y_train: ", y_train.shape)
+    # print("x_test: ", x_test.shape)
+    # print("y_test: ", y_test.shape)
     #train PCA model
-    pca = PCA(n_components=100).fit(x_train)
+    if is_pca:
+        pca = PCA(n_components=100).fit(x_train)
 
+        # return data after pca
+        x_train_pca = pca.transform(x_train)
+        x_test_pca = pca.transform(x_test)
+    else:
+        x_train_pca = x_train
+        x_test_pca = x_test
     #return data after pca
-<<<<<<< HEAD
-    x_train_pca = PCA.transform(x_train)
-    x_test_pca = PCA.transform(x_test)
-    
-    #knn core  
-    knn=KNeighborsClassifier(n_neighbors=5) 
-=======
-    x_train_pca = pca.transform(x_train)
-    x_test_pca = pca.transform(x_test)
 
     #knn core
-    knn = KNeighborsClassifier(n_neighbors=6)
+    knn = KNeighborsClassifier(n_neighbors=n_neighbors)
 
     #train the model using train dataset
     knn.fit(x_train_pca, y_train)
->>>>>>> 4662f35ffcd6c9c6c57f3c7d0d597027b3cd1f76
+
 
     #test the data
     y_test_predict = knn.predict(x_test_pca)
 
     #predict the accuracy rate
-    print("score of knn: ", knn.score(x_test_pca, y_test))
+    print("%d, %s, score of knn: " % (n_neighbors, str(is_pca)),
+          knn.score(x_test_pca, y_test))
 
 
 def softmax():
@@ -100,5 +99,7 @@ if __name__ == "__main__":
                               database_init=False,
                               load_weights=True,
                               lambda_c=lambda_c)
-    pca()
+    for k in range(1, 10):
+        for is_pca in [True, False]:
+            pca(n_neighbors=k, is_pca=is_pca)
     softmax()
