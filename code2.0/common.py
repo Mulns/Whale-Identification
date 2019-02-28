@@ -1,4 +1,4 @@
-import cPickle as pickle
+import pickle
 import time
 import zipfile
 import numpy as np
@@ -6,26 +6,29 @@ import random
 
 
 def get_time_str():
-    return time.strftime("%Y-%m-%d, %H:%M:%S ", time.localtime((time.time()) ))
+    return time.strftime("%Y-%m-%d, %H:%M:%S ", time.localtime((time.time())))
+
 
 def print_info(msg):
-    print get_time_str(), msg 
+    print(get_time_str(), msg)
 
 
 # saving data into pkl
 def data_to_pkl(data, file_path):
-    print "Saving data to file(%s). "%(file_path)
+    print("Saving data to file(%s). " % (file_path))
 
-    with open(file_path, "w") as f:
-        pickle.dump(data,f)
+    with open(file_path, "wb") as f:
+        pickle.dump(data, f)
         return True
 
-    print "Occur Error while saving..."
+    print("Occur Error while saving...")
     return False
 
+
 def read_pkl(file_path):
-    with open(file_path, "r") as f:
+    with open(file_path, "rb") as f:
         return pickle.load(f)
+
 
 def save_draw_file(draw_list):
     st = ""
@@ -42,7 +45,7 @@ def save_draw_file(draw_list):
 
 def report_format(report):
     report = report.split()
-    result = np.zeros((3,3))
+    result = np.zeros((3, 3))
     result[0][0] = report[5]
     result[0][1] = report[6]
     result[0][2] = report[7]
@@ -56,6 +59,7 @@ def report_format(report):
     result[2][2] = report[19]
 
     return result
+
 
 if __name__ == "__main__":
     pass

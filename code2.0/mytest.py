@@ -8,16 +8,17 @@ from sklearn.decomposition import PCA
 from sklearn.externals import joblib
 from joint_bayesian import *
 
+pca = PCA(n_components = 180)
 
+def excute_train(train_data, label):
 
-def excute_train():
+    global pca
 
-    train_data=
-    train_label=
     result_fold= "../result/"
 
     # pca training.
-    pca = PCA(n_components = 2000).fit(train_data)
+    pca = pca.fit(train_data)
+    a = 2
     data_pca = pca.transform(train_data)
     data_to_pkl(data_pca, result_fold+"pca_train.pkl")
  
@@ -25,10 +26,10 @@ def excute_train():
     JointBayesian_Train(data_pca, label, result_fold)
 
 
-def excute_test():
+def excute_test(test_data, test_label):
 
-    test_data =
-    test_label = 
+    global pca
+
     result_fold = "../result/"
 
     with open(result_fold+"A.pkl", "rb") as f:
@@ -39,13 +40,27 @@ def excute_test():
     data_pca = pca.transform(test_data)
     data_to_pkl(data_pca, result_fold+"pca_test.pkl")
 
+    # FIXME !
+    pair_list = 
+
     # predict using AG
-    distance = get_ratios(A, G, test_label, data_pca)
+    distance = get_ratios(A, G, pair_list, data_pca)
     label = np.repeat(1, len(np.asarray(distance)))
 
     data_to_pkl({"distance": distance, "label": label}, result_fold+"result.pkl")
 
 if __name__ == "__main__":
-    excute_train()
-    excute_test()
+    import pickle
+    meta_dir = "../Dataset/metadata/"
+    with open(meta_dir+"train_embed.pickle", 'rb') as f:
+        train_embed = pickle.load(f)
+    with open(meta_dir+"train_label.pickle", 'rb') as f:
+        train_label = pickle.load(f)
+    with open(meta_dir+"test_embed.pickle", 'rb') as f:
+        test_embed = pickle.load(f)
+    with open(meta_dir+"test_label.pickle", 'rb') as f:
+        test_label = pickle.load(f)
+
+    excute_train(train_embed, train_label)
+    excute_test(test_embed, test_label)
     excute_performance("../result/result.pkl", -16.9, -16.6, 0.01)
