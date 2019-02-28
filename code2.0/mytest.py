@@ -7,7 +7,7 @@ from sklearn import metrics
 from sklearn.decomposition import PCA
 from sklearn.externals import joblib
 from joint_bayesian import *
-import os
+
 pca = PCA(n_components = 180)
 
 def excute_train(train_data, label):
@@ -25,20 +25,11 @@ def excute_train(train_data, label):
     # joint bayes training 
     JointBayesian_Train(data_pca, label, result_fold)
 
-def partition(lst, partition_size):
-    if partition_size < 1:
-        partition_size = 1
-    return [
-        lst[i:i + partition_size]
-        for i in range(0, len(lst), partition_size)
-    ]
-
 def excute_test(test_data, test_label):
 
     global pca
 
     result_fold = "../result/"
-    test_data_folder = ""
     
     with open(result_fold+"A.pkl", "rb") as f:
         A = pickle.load(f)
@@ -49,14 +40,25 @@ def excute_test(test_data, test_label):
     data_to_pkl(data_pca, result_fold+"pca_test.pkl")
 
     # FIXME !
-    test_list = os.listdir(test_data_folder)
-    pair_list = partition(test_list, 2) 
-
-    # predict using AG
-    distance = get_ratios(A, G, pair_list, data_pca)
-    label = np.repeat(1, len(np.asarray(distance)))
-
-    data_to_pkl({"distance": distance, "label": label}, result_fold+"result.pkl")
+    scorelist = []
+    numlist = len(test_label)
+    sacrate = 0
+    for teli in range(1: numlist+1):
+        acnum = 0
+        for teli2 in range(1: numlist+1):
+            score = Verify(A, G, data_pca[teli], data_pca[teli2])
+            sl = [score, test_label[teli2]]
+            scorelist.append(sl)
+            if test_label[teli] = test_label[teli2]:
+                acnum = acnum + 1
+        sorted(scorelist, key=(lambda x:x[0]), reverse=True)
+        label_selct = scorelist[i[1] for i in range(0: 5)]
+        print (teli)
+        print (label_selct)
+        acrate = float(acnum) / numlist
+        sacrate = sacrate + acrate
+    facrate = sacrate/numlist
+    print(facrate)
 
 if __name__ == "__main__":
     import pickle
@@ -72,4 +74,3 @@ if __name__ == "__main__":
 
     excute_train(train_embed, train_label)
     excute_test(test_embed, test_label)
-    excute_performance("../result/result.pkl", -16.9, -16.6, 0.01)
