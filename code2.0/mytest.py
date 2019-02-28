@@ -7,6 +7,8 @@ from sklearn import metrics
 from sklearn.decomposition import PCA
 from sklearn.externals import joblib
 from joint_bayesian import *
+from tqdm import tqdm
+from matplotlib import pyplot as plt
 
 pca = PCA(n_components = 180)
 
@@ -23,9 +25,9 @@ def excute_train(train_data, label):
     data_to_pkl(data_pca, result_fold+"pca_train.pkl")
  
     # joint bayes training 
-    JointBayesian_Train(data_pca, label, result_fold)
+    # JointBayesian_Train(data_pca, label, result_fold)
 
-def excute_test(test_data, test_label):
+def excute_test(test_data, test_label, threshold):
 
     global pca
 
@@ -40,25 +42,39 @@ def excute_test(test_data, test_label):
     data_to_pkl(data_pca, result_fold+"pca_test.pkl")
 
     # FIXME !
-    scorelist = []
+    pred = []
+    true = []
     numlist = len(test_label)
+    print("Data: ", numlist)
     sacrate = 0
-    for teli in range(1: numlist+1):
-        acnum = 0
-        for teli2 in range(1: numlist+1):
+    scores = []
+    for teli in tqdm(np.arange(numlist)):
+        # acnum = 0
+        for teli2 in tqdm(np.arange(numlist//2)):
+            sacrate += 1
             score = Verify(A, G, data_pca[teli], data_pca[teli2])
-            sl = [score, test_label[teli2]]
-            scorelist.append(sl)
-            if test_label[teli] = test_label[teli2]:
-                acnum = acnum + 1
-        sorted(scorelist, key=(lambda x:x[0]), reverse=True)
-        label_selct = scorelist[i[1] for i in range(0: 5)]
-        print (teli)
-        print (label_selct)
-        acrate = float(acnum) / numlist
-        sacrate = sacrate + acrate
-    facrate = sacrate/numlist
-    print(facrate)
+            scores.append(score)
+            if score >= threshold:
+                pred.append(True)
+            else:
+                pred.append(False)
+            true.append(test_label[teli] == test_label[teli2])
+
+        #     sl = [score, test_label[teli2]]
+        #     scorelist.append(sl)
+        #     if test_label[teli] == test_label[teli2]:
+        #         acnum = acnum + 1
+        # sorted(scorelist, key=(lambda x:x[0]), reverse=True)
+        # label_selct = scorelist[i[1] for i in range(0,5)]
+        # print (teli)
+        # print (label_selct)
+    print("Pairs: ", sacrate, len(pred), len(true))
+    acrate = np.sum(np.equal(pred,true)) / sacrate
+
+    # facrate = sacrate/numlist
+    print("Accuracy: ", acrate)
+    plt.plot(np.arange(sacrate), scores)
+    plt.show()
 
 if __name__ == "__main__":
     import pickle
@@ -73,4 +89,4 @@ if __name__ == "__main__":
         test_label = pickle.load(f)
 
     excute_train(train_embed, train_label)
-    excute_test(test_embed, test_label)
+    excute_test(test_embed, test_label, 1)
