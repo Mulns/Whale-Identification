@@ -1,10 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
-*$py.class
 
-# C extensions
-*.so
 
 # Distribution / packaging
 .Python
@@ -102,4 +98,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-/Dataset
+# dataset
+Dataset/train
+Dataset/Train
+Dataset/test
+Dataset/test.zip
+code2.0/trainSpace

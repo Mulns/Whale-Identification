@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "/home/mulns/anaconda3/bin/python",
+    "python.linting.pylintEnabled": false,
+    "python.formatting.provider": "yapf"
+}
