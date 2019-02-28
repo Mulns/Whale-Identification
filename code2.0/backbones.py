@@ -316,7 +316,7 @@ def subblock(x, filter, **kwargs):
     return y
 
 
-def siamise(inp):
+def siamese(inp):
     kwargs = {
         'padding': 'same',
         'kernel_regularizer': keras.regularizers.l2(weight_decay)
