@@ -35,12 +35,14 @@ def pca(n_neighbors=6, is_pca=True):
     else:
         x_train_pca = x_train
         x_test_pca = x_test
+    #return data after pca
 
     #knn core
     knn = KNeighborsClassifier(n_neighbors=n_neighbors)
 
     #train the model using train dataset
     knn.fit(x_train_pca, y_train)
+
 
     #test the data
     y_test_predict = knn.predict(x_test_pca)
