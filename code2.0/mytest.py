@@ -7,7 +7,7 @@ from sklearn import metrics
 from sklearn.decomposition import PCA
 from sklearn.externals import joblib
 from joint_bayesian import *
-
+import os
 pca = PCA(n_components = 180)
 
 def excute_train(train_data, label):
@@ -25,13 +25,21 @@ def excute_train(train_data, label):
     # joint bayes training 
     JointBayesian_Train(data_pca, label, result_fold)
 
+def partition(lst, partition_size):
+    if partition_size < 1:
+        partition_size = 1
+    return [
+        lst[i:i + partition_size]
+        for i in range(0, len(lst), partition_size)
+    ]
 
 def excute_test(test_data, test_label):
 
     global pca
 
     result_fold = "../result/"
-
+    test_data_folder = ""
+    
     with open(result_fold+"A.pkl", "rb") as f:
         A = pickle.load(f)
     with open(result_fold+"G.pkl", "rb") as f:
@@ -41,7 +49,8 @@ def excute_test(test_data, test_label):
     data_to_pkl(data_pca, result_fold+"pca_test.pkl")
 
     # FIXME !
-    pair_list = 
+    test_list = os.listdir(test_data_folder)
+    pair_list = partition(test_list, 2) 
 
     # predict using AG
     distance = get_ratios(A, G, pair_list, data_pca)
